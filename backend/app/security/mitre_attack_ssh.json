@@ -1,0 +1,4 @@
+[
+  {"technique_id":"T1110","name":"Brute Force","description":"Adversaries may use brute force techniques to gain access to accounts by guessing passwords or otherwise attempting authentication repeatedly.","source_url":"https://attack.mitre.org/techniques/T1110/","event_types":["ssh_authentication_failed"],"rule_ids":["SSH-AUTH-001","SSH-AUTH-002"],"qualification":"Possible technique mapping from repeated failed SSH password authentication. This does not establish malicious intent or account compromise."},
+  {"technique_id":"T1110.001","name":"Password Guessing","description":"Adversaries may guess passwords to obtain access to victim accounts.","source_url":"https://attack.mitre.org/techniques/T1110/001/","event_types":["ssh_authentication_failed"],"rule_ids":["SSH-AUTH-001","SSH-AUTH-002"],"qualification":"Possible sub-technique mapping when linked evidence explicitly records failed SSH password attempts. This is not a confirmed attack classification."}
+]
