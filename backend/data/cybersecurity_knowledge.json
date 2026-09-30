@@ -1,0 +1,37 @@
+[
+  {
+    "id": "T1110",
+    "title": "Brute Force",
+    "description": "Adversaries may use brute force to gain access to accounts by guessing passwords or otherwise repeatedly testing authentication material.",
+    "keywords": ["brute force", "authentication", "password", "login failures", "ssh", "repeated attempts", "credential access"],
+    "guidance": "Correlate authentication failures by source, account, and time window. Treat the pattern as suspicious behavior, not proof of compromise."
+  },
+  {
+    "id": "T1110.001",
+    "title": "Password Guessing",
+    "description": "Adversaries may guess passwords for accounts, including by trying common or likely passwords against an authentication service.",
+    "keywords": ["password guessing", "brute force", "ssh", "failed password", "authentication failure", "account", "credential attack"],
+    "guidance": "Review the event sequence and affected accounts. A successful login after failures is evidence of access, but does not alone establish malicious intent or impact."
+  },
+  {
+    "id": "T1078",
+    "title": "Valid Accounts",
+    "description": "Adversaries may obtain and abuse existing account credentials to gain access to systems or services.",
+    "keywords": ["valid accounts", "successful login", "ssh", "account access", "credentials", "authentication"],
+    "guidance": "Only associate this behavior when records show use of an existing account. Do not infer account compromise from failed authentication attempts alone."
+  },
+  {
+    "id": "SSH-AUTH-INVESTIGATION",
+    "title": "SSH Authentication Attack Investigation",
+    "description": "A focused review of SSH authentication events can identify repeated failures, invalid-user attempts, and successful logins in context.",
+    "keywords": ["ssh", "authentication", "investigation", "failed login", "invalid user", "successful login", "source ip", "timeline"],
+    "guidance": "Preserve raw event records, correlate timestamps and source addresses, distinguish invalid-user attempts from failures for known accounts, and verify any success against the stored event."
+  },
+  {
+    "id": "CREDENTIAL-ATTACK-CONTAINMENT",
+    "title": "Credential Attack Containment",
+    "description": "Containment should reduce exposure while preserving evidence and avoiding actions unsupported by the investigation.",
+    "keywords": ["credential attack", "containment", "ssh", "password guessing", "account", "access review", "response"],
+    "guidance": "For human review, consider confirming affected accounts, rotating credentials when authorized, reviewing SSH access policy, and preserving relevant logs. Do not block or modify systems automatically based only on a detection."
+  }
+]
