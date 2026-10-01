@@ -1,18 +1,14 @@
-import asyncio
-from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.agents.investigation import LocalInvestigationAgent, build_investigation_case_state
 from app.core.config import get_settings
 from app.db.dependencies import get_db
 from app.models import DetectionRecord, Incident, InvestigationResult
-from app.schemas.investigation import InvestigationRunRead, LLMInvestigationOutput
-from app.security.investigation_pipeline import (
-    build_analysis, build_evidence_context, pipeline_modules, verification_passes, verify_analysis,
-)
+from app.schemas.investigation import InvestigationRunRead, PipelineModuleStatus
+from app.security.investigation_pipeline import pipeline_modules
 from app.security.ollama import (
     OllamaConfigurationError, OllamaInvalidResponse, OllamaTimedOut,
     OllamaUnavailable, OllamaClient,
@@ -33,21 +29,29 @@ async def investigate_incident(incident_id: int, db: Session = Depends(get_db)) 
         .options(selectinload(DetectionRecord.events))).all())
     settings = get_settings()
     client = OllamaClient(settings)
+    agent = LocalInvestigationAgent(client)
     try:
-        context = build_evidence_context(incident, detections)
-        raw_analysis = await asyncio.to_thread(client.generate, context)
-        llm_output = LLMInvestigationOutput.model_validate(raw_analysis)
-        analysis = build_analysis(incident, detections, llm_output)
-        verification = verify_analysis(incident.security_events, analysis)
-        if not verification_passes(verification):
+        case_state = build_investigation_case_state(incident, detections)
+        execution = await agent.run(case_state)
+        analysis = execution.analysis
+        verification = execution.verification
+        if execution.status != "completed":
             return InvestigationRunRead(
                 status="failed", model=settings.ollama_model, inference_used=True,
-                error_message="Investigation output did not pass independent evidence verification.",
+                error_message=execution.error_message,
                 analysis=analysis, verification=verification,
-                modules=pipeline_modules("completed", "failed"),
+                modules=[
+                    PipelineModuleStatus(
+                        module=item.module,
+                        responsibility=item.responsibility,
+                        method=item.method,
+                        status="failed" if item.module == "independent_verification" else item.status,
+                    )
+                    for item in execution.modules
+                ],
             )
-        modules = pipeline_modules("completed", "completed")
-        generated_at = datetime.now(timezone.utc)
+        modules = execution.modules
+        generated_at = execution.generated_at
     except (OllamaUnavailable, OllamaConfigurationError):
         return InvestigationRunRead(status="unavailable", model=settings.ollama_model,
             inference_used=False, error_message="Local Ollama is unavailable. Start Ollama and confirm the configured model is installed.",

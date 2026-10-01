@@ -15,6 +15,15 @@ from app.security.verification import verify_investigation
 KNOWLEDGE_PATH = Path(__file__).with_name("mitre_attack_ssh.json")
 
 
+def lookup_attack_mappings(incident: Incident, detections: list[DetectionRecord]) -> list[AttackMappingRead]:
+    rule_ids = {item.rule_id for item in detections}
+    event_types = {event.event_type for event in incident.security_events}
+    knowledge = json.loads(KNOWLEDGE_PATH.read_text(encoding="utf-8"))
+    return [AttackMappingRead(**{key: item[key] for key in (
+        "technique_id", "name", "description", "source_url", "qualification"
+    )}) for item in knowledge if rule_ids.intersection(item["rule_ids"]) and event_types.intersection(item["event_types"])]
+
+
 def build_incident_report(incident: Incident, detections: list[DetectionRecord], request: VerificationRequest | None = None) -> IncidentReportRead:
     events = sorted(incident.security_events, key=lambda event: (event.timestamp is None, event.timestamp, event.id))
     event_ids = {event.id for event in events}
@@ -24,12 +33,7 @@ def build_incident_report(incident: Incident, detections: list[DetectionRecord],
         event_ids=sorted(event.id for event in item.events if event.id in event_ids),
         detected_at=item.detected_at,
     ) for item in detections]
-    rule_ids = {item.rule_id for item in detections}
-    event_types = {event.event_type for event in events}
-    knowledge = json.loads(KNOWLEDGE_PATH.read_text(encoding="utf-8"))
-    mappings = [AttackMappingRead(**{key: item[key] for key in (
-        "technique_id", "name", "description", "source_url", "qualification"
-    )}) for item in knowledge if rule_ids.intersection(item["rule_ids"]) and event_types.intersection(item["event_types"])]
+    mappings = lookup_attack_mappings(incident, detections)
 
     if request is None:
         claims = [InvestigationClaimInput(

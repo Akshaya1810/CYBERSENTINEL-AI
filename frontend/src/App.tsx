@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { IncidentDetails } from './components/IncidentDetails'
 import { IncidentForm } from './components/IncidentForm'
+import { EvaluationDashboard } from './components/EvaluationDashboard'
 import { SecurityLogPanel } from './components/SecurityLogPanel'
 import { api } from './services/api'
 import type { DatabaseHealth, HealthStatus, Incident, IncidentSeverity, IncidentStatus } from './types'
@@ -72,6 +73,7 @@ function App() {
           <a className={`nav-item ${activeNav === 'incidents' ? 'active' : ''}`} href="#incidents" onClick={() => setActiveNav('incidents')}><span>⌁</span> Incidents <i>{incidents.length}</i></a>
           <a className={`nav-item ${activeNav === 'investigations' ? 'active' : ''}`} href="#investigations" onClick={() => setActiveNav('investigations')}><span>◎</span> Investigations</a>
           <a className={`nav-item ${activeNav === 'logs' ? 'active' : ''}`} href="#log-ingestion" onClick={() => setActiveNav('logs')}><span>⇧</span> Log ingestion</a>
+          <a className={`nav-item ${activeNav === 'evaluation' ? 'active' : ''}`} href="#evaluation" onClick={() => setActiveNav('evaluation')}><span>▦</span> Evaluation</a>
           <a className="nav-item muted" href="#agents"><span>◇</span> Agents <i className="soon">SOON</i></a>
           <a className="nav-item muted" href="#privacy"><span>⚙</span> Settings</a>
         </nav>
@@ -94,6 +96,7 @@ function App() {
             <article className="panel"><div className="panel-heading"><div><h2>By severity</h2><p>Incident distribution from API data</p></div></div><div className="count-list">{severityOrder.map((severity) => <div className="count-row" key={severity}><span className={`badge severity ${severity.toLowerCase()}`}>{severity}</span><span className="count-track"><span className={`count-fill ${severity.toLowerCase()}`} style={{ width: incidents.length ? `${(severityCounts[severity] / incidents.length) * 100}%` : '0%' }}/></span><strong>{loading ? '—' : severityCounts[severity]}</strong></div>)}</div></article>
             <article className="panel"><div className="panel-heading"><div><h2>By status</h2><p>Current workflow state</p></div></div><div className="count-list">{statusOrder.map((status) => <div className="count-row" key={status}><span className={`badge status ${status.toLowerCase()}`}>{status}</span><span className="count-track"><span className={`count-fill ${status.toLowerCase()}`} style={{ width: incidents.length ? `${(statusCounts[status] / incidents.length) * 100}%` : '0%' }}/></span><strong>{loading ? '—' : statusCounts[status]}</strong></div>)}</div></article>
           </div>
+          <EvaluationDashboard />
           <section className="panel incident-panel" id="incidents"><div className="panel-heading"><div><h2>Incident queue</h2><p>Newest incidents first · select a record to view details</p></div><span className="step-count">{incidents.length} TOTAL</span></div>
             {loading ? <div className="table-state" role="status"><span className="spinner"/> Loading incidents from the backend…</div> : loadError && incidents.length === 0 ? <div className="table-state">Incident data is unavailable. Check that the backend is running, then retry.</div> : incidents.length === 0 ? <div className="empty-state"><span className="empty-icon">⌁</span><h3>No incidents yet</h3><p>Create an incident to begin tracking records in your local workspace.</p><button className="button-primary" onClick={() => setCreateOpen(true)}>＋ Create first incident</button></div> : <div className="table-wrap"><table><thead><tr><th>INCIDENT</th><th>SEVERITY</th><th>STATUS</th><th>SOURCE IP</th><th>CREATED</th><th/></tr></thead><tbody>{incidents.map((incident) => <tr key={incident.id}><td><button className="incident-link" onClick={() => setSelectedIncidentId(incident.id)}><strong>{incident.title}</strong><small>INC-{String(incident.id).padStart(4, '0')}</small></button></td><td><span className={`badge severity ${incident.severity.toLowerCase()}`}>{incident.severity}</span></td><td><span className={`badge status ${incident.status.toLowerCase()}`}>{incident.status}</span></td><td className="mono-cell">{incident.source_ip || '—'}</td><td className="date-cell">{dateTime(incident.created_at)}</td><td><button className="row-action" onClick={() => setSelectedIncidentId(incident.id)}>Details <span>›</span></button></td></tr>)}</tbody></table></div>}
           </section>

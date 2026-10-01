@@ -9,7 +9,11 @@ from app.schemas.investigation import (
     InvestigationAnalysis, LLMInvestigationOutput, NarrativeSection,
     PipelineModuleStatus, RecommendationDraft, RiskAssessment,
 )
-from app.schemas.verification import InvestigationClaimInput, ResponseRecommendationInput, VerificationReportRead
+from app.schemas.verification import (
+    InvestigationClaimInput,
+    ResponseRecommendationInput,
+    VerificationReportRead,
+)
 from app.security.ollama import OllamaClient
 from app.security.verification import verify_investigation
 
@@ -55,6 +59,36 @@ def _deterministic_event_ids(incident: Incident, detections: list[DetectionRecor
     valid_ids = {event.id for event in incident.security_events}
     detected_ids = [event.id for record in detections for event in record.events if event.id in valid_ids]
     return _unique_ids(detected_ids) or sorted(valid_ids)
+
+
+def build_deterministic_triage(incident: Incident, detections: list[DetectionRecord]) -> NarrativeSection:
+    events = sorted(incident.security_events, key=lambda item: (item.timestamp is None, item.timestamp, item.id))
+    detection_ids = _deterministic_event_ids(incident, detections)
+    counts = Counter(event.event_type for event in events)
+    count_text = ", ".join(f"{name}: {count}" for name, count in sorted(counts.items()))
+    summary = (
+        f"Recorded {len(events)} security events" + (f" ({count_text})." if count_text else ".")
+        if events else "No security-event evidence is recorded."
+    )
+    return NarrativeSection(
+        summary=summary[:500],
+        event_ids=detection_ids[:5],
+        uncertainty="Deterministic event counts; intent and compromise are not established.",
+    )
+
+
+def build_deterministic_risk_assessment(
+    incident: Incident, detections: list[DetectionRecord],
+) -> RiskAssessment:
+    detection_ids = _deterministic_event_ids(incident, detections)
+    rule_names = ", ".join(dict.fromkeys(item.rule_name for item in detections))
+    risk_basis = f" from deterministic rule(s): {rule_names}" if rule_names else " from the persisted incident severity"
+    return RiskAssessment(
+        level=incident.severity.value.lower(),
+        rationale=f"Risk level follows {incident.severity.value}{risk_basis}; this is not confirmation of compromise."[:240],
+        event_ids=detection_ids[:5],
+        uncertainty="Rule-based severity estimate; compromise is not established.",
+    )
 
 
 def _as_hypothesis(item: CompactInterpretation) -> EvidenceStatement:
@@ -103,22 +137,9 @@ def build_analysis(
 ) -> InvestigationAnalysis:
     """Join concise model interpretations with deterministic evidence-owned fields."""
     events = sorted(incident.security_events, key=lambda item: (item.timestamp is None, item.timestamp, item.id))
-    detection_ids = _deterministic_event_ids(incident, detections)
-    triage_ids = detection_ids[:5]
-    counts = Counter(event.event_type for event in events)
-    count_text = ", ".join(f"{name}: {count}" for name, count in sorted(counts.items()))
-    triage_summary = (
-        f"Recorded {len(events)} security events" + (f" ({count_text})." if count_text else ".")
-        if events else "No security-event evidence is recorded."
-    )
-    rule_names = ", ".join(dict.fromkeys(item.rule_name for item in detections))
-    risk_basis = f" from deterministic rule(s): {rule_names}" if rule_names else " from the persisted incident severity"
-    risk = RiskAssessment(
-        level=incident.severity.value.lower(),
-        rationale=f"Risk level follows {incident.severity.value}{risk_basis}; this is not confirmation of compromise."[:240],
-        event_ids=detection_ids[:5],
-        uncertainty="Rule-based severity estimate; compromise is not established.",
-    )
+    triage = build_deterministic_triage(incident, detections)
+    risk = build_deterministic_risk_assessment(incident, detections)
+    triage_ids = triage.event_ids
 
     attack_texts = [item.text for item in llm_output.attack_reconstruction]
     attack_ids = _unique_ids(event_id for item in llm_output.attack_reconstruction for event_id in item.event_ids)
@@ -140,10 +161,7 @@ def build_analysis(
     return InvestigationAnalysis(
         summary=llm_output.summary.text,
         summary_event_ids=llm_output.summary.event_ids,
-        triage=NarrativeSection(
-            summary=triage_summary[:500], event_ids=triage_ids,
-            uncertainty="Deterministic event counts; intent and compromise are not established.",
-        ),
+        triage=triage,
         findings=[_as_hypothesis(item) for item in llm_output.findings],
         attack_reconstruction=NarrativeSection(
             summary=attack_summary, event_ids=attack_ids[:10],
@@ -171,7 +189,9 @@ def _statement_claim(statement: EvidenceStatement) -> InvestigationClaimInput:
     )
 
 
-def verify_analysis(evidence: list[SecurityEvent], analysis: InvestigationAnalysis) -> VerificationReportRead:
+def analysis_verification_inputs(
+    analysis: InvestigationAnalysis,
+) -> tuple[list[InvestigationClaimInput], list[ResponseRecommendationInput]]:
     claims = []
     if analysis.summary:
         claims.append(InvestigationClaimInput(
@@ -200,6 +220,11 @@ def verify_analysis(evidence: list[SecurityEvent], analysis: InvestigationAnalys
         username=item.username,
         approval_status="pending",  # Server-owned; the model cannot approve its own actions.
     ) for item in analysis.response_recommendations]
+    return claims, recommendations
+
+
+def verify_analysis(evidence: list[SecurityEvent], analysis: InvestigationAnalysis) -> VerificationReportRead:
+    claims, recommendations = analysis_verification_inputs(analysis)
     return verify_investigation(evidence, claims, recommendations)
 
 

@@ -74,6 +74,46 @@ export interface DatabaseHealth {
   database: string
 }
 
+export interface EvaluationMetric {
+  value: number | null
+  numerator: number
+  denominator: number
+  unavailable_reason: string | null
+  definition?: string
+}
+
+export interface EvaluationCaseResult {
+  case_id: string
+  ground_truth: Record<string, unknown>
+  system_output: Record<string, unknown>
+}
+
+export interface EvaluationModeResult {
+  status: string
+  description: string
+  cases: EvaluationCaseResult[]
+  metrics: Record<string, EvaluationMetric | Record<string, number>>
+}
+
+export interface EvaluationBaseline {
+  status: string
+  notes: string
+}
+
+export interface EvaluationResults {
+  schema_version: string
+  evaluation_parameters: Record<string, string | number | boolean>
+  dataset: {
+    id: string
+    version: string
+    case_count: number
+    sha256: string
+  }
+  baselines: Record<string, EvaluationBaseline>
+  evaluations: Record<string, EvaluationModeResult>
+  metrics_not_calculated: { metric: string; reason: string }[]
+}
+
 export interface DetectionRule {
   rule_id: string
   name: string

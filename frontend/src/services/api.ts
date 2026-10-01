@@ -2,6 +2,7 @@ import type {
   DatabaseHealth,
   DetectionHistoryItem,
   DetectionRule,
+  EvaluationResults,
   HealthStatus,
   Incident,
   IncidentReport,
@@ -66,6 +67,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const api = {
   getHealth: () => request<HealthStatus>('/api/health'),
   getDatabaseHealth: () => request<DatabaseHealth>('/api/db-health'),
+  getEvaluationResults: () => request<EvaluationResults>('/api/evaluation/results'),
   listIncidents: () => request<Incident[]>('/api/incidents'),
   getIncident: (id: number) => request<IncidentDetail>(`/api/incidents/${id}`),
   createIncident: (input: IncidentCreateInput) =>

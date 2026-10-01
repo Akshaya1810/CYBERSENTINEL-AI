@@ -11,6 +11,7 @@ from app.db.session import Base, engine
 from app.models import Incident, InvestigationResult, SecurityEvent  # Register model metadata.
 from app.models import DetectionRecord
 from app.routers.detections import MAX_UPLOAD_BYTES, router as detections_router
+from app.routers.evaluation import router as evaluation_router
 from app.routers.incidents import router as incidents_router
 from app.routers.investigations import router as investigations_router
 from app.routers.reports import router as reports_router
@@ -37,6 +38,7 @@ app.include_router(investigations_router)
 app.include_router(detections_router)
 app.include_router(reports_router)
 app.include_router(rag_router)
+app.include_router(evaluation_router)
 
 app.add_middleware(
     CORSMiddleware,
