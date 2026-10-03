@@ -42,6 +42,7 @@ class SyntheticEvaluationCase(BaseModel):
 
     case_id: str = Field(pattern=r"^[a-z0-9][a-z0-9_-]{1,63}$")
     description: str = Field(min_length=1)
+    expected_security_incident: bool
     incident_severity: Literal["Critical", "High", "Medium", "Low"]
     source_ip: str | None = None
     events: list[EvaluationEvent] = Field(min_length=1, max_length=200)

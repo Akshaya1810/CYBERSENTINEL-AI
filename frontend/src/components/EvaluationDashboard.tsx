@@ -3,16 +3,22 @@ import { ApiError, api } from '../services/api'
 import type { EvaluationMetric, EvaluationResults } from '../types'
 
 const metricCards = [
-  ['detection_precision', 'Detection precision'],
-  ['detection_recall', 'Detection recall'],
-  ['detection_f1', 'Detection F1'],
+  ['detection_precision', 'Incident detection precision'],
+  ['detection_recall', 'Incident detection recall'],
+  ['detection_f1', 'Incident detection F1'],
+  ['detection_accuracy', 'Incident classification accuracy'],
   ['false_positive_rate', 'False-positive rate'],
   ['attack_mapping_exact_case_accuracy', 'ATT&CK mapping accuracy'],
   ['severity_risk_category_accuracy', 'Risk category accuracy'],
-  ['expected_evidence_coverage', 'Evidence coverage'],
+] as const
+
+const diagnosticMetrics = [
+  ['expected_evidence_coverage', 'Expected detection evidence covered'],
+  ['detection_evidence_id_validity', 'Evidence references belong to the dataset'],
   ['verification_supported_claim_rate', 'Supported verifier probes'],
-  ['unsupported_claim_detection_rate', 'Unsupported-claim detection'],
-  ['response_recommendation_safety_compliance', 'Response safety compliance'],
+  ['unsupported_claim_detection_rate', 'Unsupported-claim probes flagged'],
+  ['verification_probe_exact_status_accuracy', 'Exact verifier probe status'],
+  ['response_recommendation_safety_compliance', 'Response safety constraints'],
 ] as const
 
 const modeLabels: Record<string, string> = {
@@ -60,6 +66,10 @@ export function EvaluationDashboard() {
   useEffect(() => { void loadResults() }, [])
 
   const selectedEvaluation = results?.evaluations?.[selectedMode]
+  const confusionValue = selectedEvaluation?.metrics.confusion_counts
+  const confusion = confusionValue && typeof confusionValue === 'object'
+    ? confusionValue as Record<string, number>
+    : null
   const unavailableBaselines = Object.entries(results?.baselines ?? {})
     .filter(([, baseline]) => baseline.status === 'unavailable')
 
@@ -137,11 +147,57 @@ export function EvaluationDashboard() {
             })}
           </div>
 
+          {confusion && (
+            <article className="panel baseline-panel">
+              <div className="panel-heading">
+                <div><h2>Detection classification results</h2><p>Incident labels compared with system detections</p></div>
+                <span className="step-count">{results.dataset.case_count} CASES</span>
+              </div>
+              <div className="table-wrap">
+                <table>
+                  <thead><tr><th>OUTCOME</th><th>CASES</th><th>INTERPRETATION</th></tr></thead>
+                  <tbody>
+                    <tr><td>True positives</td><td>{confusion.true_positive}</td><td>Labeled incidents detected</td></tr>
+                    <tr><td>False positives</td><td>{confusion.false_positive}</td><td>Benign cases that triggered detection</td></tr>
+                    <tr><td>False negatives</td><td>{confusion.false_negative}</td><td>Labeled incidents missed by detection</td></tr>
+                    <tr><td>True negatives</td><td>{confusion.true_negative}</td><td>Benign cases correctly left undetected</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          )}
+
+          <article className="panel baseline-panel">
+            <div className="panel-heading">
+              <div><h2>Evidence, verifier &amp; safety checks</h2><p>Diagnostic counts, not broad model-performance estimates</p></div>
+            </div>
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>CHECK</th><th>PASS / TOTAL</th><th>INTERPRETATION</th></tr></thead>
+                <tbody>{diagnosticMetrics.map(([key, label]) => {
+                  const rawMetric = selectedEvaluation.metrics[key]
+                  const metric = isMetric(rawMetric) ? rawMetric : undefined
+                  return (
+                    <tr key={key}>
+                      <td>{label}</td>
+                      <td>{metric ? `${metric.numerator} / ${metric.denominator}` : 'Unavailable'}</td>
+                      <td>{key === 'response_recommendation_safety_compliance'
+                        ? 'Safety constraint check; this should pass and is not a detection-performance score.'
+                        : key.startsWith('verification_') || key === 'unsupported_claim_detection_rate'
+                          ? 'Small, hand-authored probe sample; results are specific to these probes.'
+                          : 'Evidence-integrity check for this synthetic dataset.'}</td>
+                    </tr>
+                  )
+                })}</tbody>
+              </table>
+            </div>
+          </article>
+
           <div className="panel evaluation-notice">
             <span className="evaluation-notice-icon">i</span>
             <div>
               <strong>Synthetic evaluation, not a real-world performance claim</strong>
-              <p>Results describe this local synthetic dataset only. Unavailable metrics and baselines are shown as unavailable; no scores or rankings are inferred.</p>
+              <p>Results are computed against authored synthetic incident labels, including benign alert-triggering activity and below-threshold attack cases. The detector still misses distinctions that need more context. These are analysis results for a controlled dataset, not estimates of real-world performance. Safety and evidence-integrity checks are reported as counts, not as model accuracy.</p>
             </div>
           </div>
 

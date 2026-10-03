@@ -9,8 +9,9 @@ class Settings(BaseSettings):
     app_name: str = "CyberSentinel AI API"
     environment: str = "development"
     database_url: str = "postgresql+psycopg://postgres:CHANGE_ME@localhost:5432/cybersentinel"
-    ssh_bruteforce_threshold: int = Field(default=5, gt=0)
+    ssh_bruteforce_threshold: int = Field(default=4, gt=0)
     ssh_bruteforce_window_seconds: int = Field(default=300, gt=0)
+    ssh_bruteforce_exempt_usernames: str = ""
     ssh_success_failure_threshold: int = Field(default=5, gt=0)
     ssh_success_failure_window_seconds: int = Field(default=600, gt=0)
     ssh_invalid_user_threshold: int = Field(default=3, gt=0)

@@ -19,17 +19,9 @@ class EvaluationDatasetTests(unittest.TestCase):
         dataset = load_dataset()
 
         self.assertEqual(dataset.dataset_id, "cybersentinel-synthetic-ssh")
-        self.assertEqual(len(dataset.cases), 5)
-        self.assertEqual(
-            {case.case_id for case in dataset.cases},
-            {
-                "ssh-brute-force",
-                "benign-ssh-authentication",
-                "insufficient-failed-authentication",
-                "related-invalid-user-events",
-                "uncertain-repeated-failures",
-            },
-        )
+        self.assertEqual(len(dataset.cases), 23)
+        self.assertEqual(sum(case.expected_security_incident for case in dataset.cases), 13)
+        self.assertEqual(sum(not case.expected_security_incident for case in dataset.cases), 10)
 
     def test_dataset_schema_rejects_expected_evidence_outside_case(self):
         raw = json.loads(DEFAULT_DATASET.read_text(encoding="utf-8"))
@@ -95,8 +87,8 @@ class EvaluationRunnerTests(unittest.TestCase):
             markdown = (results_dir / "evaluation.md").read_text(encoding="utf-8")
 
         evaluation = document["evaluations"]["deterministic_baseline"]
-        self.assertEqual(len(evaluation["cases"]), 5)
-        self.assertEqual(stored["dataset"]["case_count"], 5)
+        self.assertEqual(len(evaluation["cases"]), 23)
+        self.assertEqual(stored["dataset"]["case_count"], 23)
         first_case = evaluation["cases"][0]
         self.assertIn("expected_status", first_case["ground_truth"]["verification_probes"][0])
         self.assertNotIn("expected_status", first_case["system_output"]["probe_verification"][0])
@@ -104,12 +96,24 @@ class EvaluationRunnerTests(unittest.TestCase):
         self.assertIn("unsupported_claim_detection_rate", markdown)
         self.assertEqual(document["baselines"]["B_single_llm_investigation"]["status"], "unavailable")
         self.assertEqual(document["baselines"]["C_multi_agent_without_verification"]["status"], "unavailable")
-        self.assertEqual(evaluation["metrics"]["detection_precision"]["value"], 1.0)
-        self.assertEqual(evaluation["metrics"]["detection_recall"]["value"], 1.0)
+        self.assertAlmostEqual(evaluation["metrics"]["detection_precision"]["value"], 12 / 14)
+        self.assertAlmostEqual(evaluation["metrics"]["detection_recall"]["value"], 12 / 13)
+        self.assertAlmostEqual(evaluation["metrics"]["detection_f1"]["value"], 24 / 27)
+        self.assertAlmostEqual(evaluation["metrics"]["false_positive_rate"]["value"], 2 / 10)
+        self.assertAlmostEqual(evaluation["metrics"]["detection_accuracy"]["value"], 20 / 23)
+        self.assertEqual(evaluation["metrics"]["confusion_counts"], {
+            "true_positive": 12,
+            "false_positive": 2,
+            "false_negative": 1,
+            "true_negative": 8,
+        })
+        self.assertAlmostEqual(evaluation["metrics"]["severity_risk_category_accuracy"]["value"], 19 / 23)
+        self.assertAlmostEqual(evaluation["metrics"]["attack_mapping_exact_case_accuracy"]["value"], 21 / 23)
         self.assertEqual(evaluation["metrics"]["detection_rule_exact_case_accuracy"]["value"], 1.0)
         self.assertEqual(evaluation["metrics"]["related_event_group_exact_accuracy"]["value"], 1.0)
         self.assertFalse(document["evaluation_parameters"]["ollama_execution_attempted"])
         self.assertTrue(document["metrics_not_calculated"])
+        self.assertIn("Detection classification analysis", markdown)
 
     def test_evidence_verification_and_response_safety_metrics_are_calculated(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -119,7 +123,8 @@ class EvaluationRunnerTests(unittest.TestCase):
         self.assertEqual(metrics["expected_evidence_coverage"]["value"], 1.0)
         self.assertEqual(metrics["detection_evidence_id_validity"]["value"], 1.0)
         self.assertEqual(metrics["verification_supported_claim_rate"]["value"], 1.0)
-        self.assertEqual(metrics["unsupported_claim_detection_rate"]["value"], 1.0)
+        self.assertAlmostEqual(metrics["unsupported_claim_detection_rate"]["value"], 3 / 5)
+        self.assertAlmostEqual(metrics["verification_probe_exact_status_accuracy"]["value"], 11 / 13)
         self.assertEqual(metrics["response_recommendation_safety_compliance"]["value"], 1.0)
 
     def test_complete_runner_records_outputs_without_requiring_ollama_in_test(self):
@@ -139,7 +144,7 @@ class EvaluationRunnerTests(unittest.TestCase):
             )
 
         complete = document["evaluations"]["complete_pipeline"]
-        self.assertEqual(len(calls), 5)
+        self.assertEqual(len(calls), 23)
         self.assertEqual(complete["status"], "completed_with_failures")
         self.assertTrue(all(
             case["system_output"]["workflow_status"] == "failed"

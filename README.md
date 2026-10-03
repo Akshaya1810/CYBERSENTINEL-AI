@@ -114,8 +114,9 @@ The backend reads `backend/.env` (`backend/.env.example` lists supported example
 | Setting | Default / purpose |
 |---|---|
 | `DATABASE_URL` | Local PostgreSQL URL for database `cybersentinel`; supply your own local credential. |
-| `SSH_BRUTEFORCE_THRESHOLD` | 5 failures. |
+| `SSH_BRUTEFORCE_THRESHOLD` | 4 failures (higher sensitivity; may increase false positives). |
 | `SSH_BRUTEFORCE_WINDOW_SECONDS` | 300 seconds. |
+| `SSH_BRUTEFORCE_EXEMPT_USERNAMES` | Empty by default; comma-separated exact usernames approved to suppress only the brute-force rule when every failed event in its window is for an approved username. |
 | `SSH_SUCCESS_FAILURE_THRESHOLD` | 5 preceding failures. |
 | `SSH_SUCCESS_FAILURE_WINDOW_SECONDS` | 600 seconds. |
 | `SSH_INVALID_USER_THRESHOLD` | 3 invalid-user events. |
@@ -138,9 +139,11 @@ The root, backend and frontend `.env.example` files contain examples/placeholder
 
 Upload limits are 5 MiB and 10,000 records. Default detection rules:
 
-- `SSH-AUTH-001` (High): at least 5 failed SSH password attempts from one IP within 300 seconds.
+- `SSH-AUTH-001` (High): at least 4 failed SSH password attempts from one IP within 300 seconds, unless every failed event in the window belongs to an explicitly allowlisted username.
 - `SSH-AUTH-002` (Critical): successful password login after at least 5 failures from that IP within 600 seconds.
 - `SSH-AUTH-003` (Medium): at least 3 invalid-user attempts from one IP within 300 seconds.
+
+The brute-force username allowlist is an operator-maintained exception, not an inferred trust signal. Keep it empty unless an automation identity is verified; allowlisted usernames can still trigger `SSH-AUTH-002` after a successful login preceded by repeated failures. The synthetic evaluation explicitly allowlists only `automation1` and `automation2` to measure this tradeoff; configure real local identities separately in `backend/.env`.
 
 The incident API includes create/list/read/update/delete routes under `/api/incidents`, event routes under `/api/incidents/{incident_id}/events`, investigation results, and structured/Markdown reports at `/api/incidents/{incident_id}/report` and `/api/incidents/{incident_id}/report.md`.
 
@@ -168,18 +171,18 @@ The orchestrator is currently an internal service; the existing incident API doe
 
 ## Synthetic evaluation and dashboard
 
-The evaluation dataset in `backend/evaluation/synthetic_cases.json` contains five controlled synthetic SSH cases. The runner is local and deterministic for its deterministic mode:
+The evaluation dataset in `backend/evaluation/synthetic_cases.json` contains 23 controlled synthetic SSH cases: confirmed-positive attack replays, benign maintenance bursts that cross a detection threshold, below-threshold attack scenarios, verifier edge probes, and benign negative controls. Each case has an authored `expected_security_incident` label, kept separate from `expected_detection_rules` so rule matching is not confused with whether the scenario represents an incident. The runner is local and deterministic for its deterministic mode:
 
 ```powershell
 Set-Location backend
 python -m app.evaluation.runner
 ```
 
-It uses existing deterministic detection, local ATT&CK, risk, verification and response-planning logic with transient in-memory case data. It does not write database records or call external services. Results are written to `backend/evaluation/results/evaluation.json` and `evaluation.md`. `--mode complete` or `--mode both` additionally invokes the production orchestrator and requires the configured local Ollama service.
+It uses existing deterministic detection, local ATT&CK, risk, verification and response-planning logic with transient in-memory case data. It does not write database records or call external services. Results are written to `backend/evaluation/results/evaluation.json` and `evaluation.md`. Precision, recall, F1, accuracy, and false-positive rate are calculated against `expected_security_incident`; the reports include confusion counts and per-case outcomes for analysis. `--mode complete` or `--mode both` additionally invokes the production orchestrator and requires the configured local Ollama service.
 
 The dashboard's **Evaluation** section reads the stored JSON through read-only `GET /api/evaluation/results`; the endpoint does not trigger a run. It presents the mode, case count, metrics, and unavailable baselines. The generated result currently includes the deterministic baseline; the single-LLM-only and multi-agent-without-verification baselines are **Unavailable**, not assigned zero scores.
 
-All evaluation labels and metrics apply only to this synthetic dataset. They are not real-world performance claims, model quality measurements, or proof of superiority over a baseline. Current generated values and limitations are documented in the result files; rerunning the runner updates them from the current local code and dataset.
+All evaluation labels and metrics apply only to this synthetic dataset. The challenge cases are intentionally authored to expose both false positives and false negatives; they are not a representative sample and must not be presented as real-world performance estimates, model quality measurements, or proof of superiority over a baseline. Current generated values and limitations are documented in the result files; rerunning the runner updates them from the current local code and dataset. Evaluation cases are in-memory only and do not populate the dashboard's PostgreSQL incident queue.
 
 ## Tests and validation
 

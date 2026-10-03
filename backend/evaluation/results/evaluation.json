@@ -1,7 +1,8 @@
 {
   "schema_version": "1.0",
   "evaluation_parameters": {
-    "ssh_bruteforce_threshold": 5,
+    "ssh_bruteforce_threshold": 4,
+    "ssh_bruteforce_exempt_usernames": "automation1,automation2",
     "ssh_bruteforce_window_seconds": 300,
     "ssh_success_failure_threshold": 5,
     "ssh_invalid_user_threshold": 3,
@@ -12,9 +13,9 @@
   },
   "dataset": {
     "id": "cybersentinel-synthetic-ssh",
-    "version": "1.0.0",
-    "case_count": 5,
-    "sha256": "d22e0866da57f3e7a39f90965011eb03c0a5416cdcf80e7597d72742bf1a2684"
+    "version": "1.3.0",
+    "case_count": 23,
+    "sha256": "7417f30577c87b15a799fa6c23e54b43a0d0d46ed92ca31a8b2d23bd0414dc8d"
   },
   "baselines": {
     "A_deterministic_detection": {
@@ -43,6 +44,7 @@
           "case_id": "ssh-brute-force",
           "ground_truth": {
             "description": "Five failed SSH password events from one source within the deterministic rule's default five-minute window.",
+            "security_incident": true,
             "detection_rules": [
               "SSH-AUTH-001"
             ],
@@ -75,6 +77,7 @@
           },
           "system_output": {
             "workflow_status": "completed",
+            "security_incident_detected": true,
             "detection_rules": [
               {
                 "rule_id": "SSH-AUTH-001",
@@ -174,6 +177,7 @@
           "case_id": "benign-ssh-authentication",
           "ground_truth": {
             "description": "A single successful SSH authentication without preceding repeated failures.",
+            "security_incident": false,
             "detection_rules": [],
             "risk_category": "low",
             "attack_mapping_ids": [],
@@ -191,6 +195,7 @@
           },
           "system_output": {
             "workflow_status": "completed",
+            "security_incident_detected": false,
             "detection_rules": [],
             "triage_severity": "low",
             "correlated_event_groups": [],
@@ -235,6 +240,7 @@
           "case_id": "insufficient-failed-authentication",
           "ground_truth": {
             "description": "Two failed SSH password events, below the deterministic brute-force threshold.",
+            "security_incident": false,
             "detection_rules": [],
             "risk_category": "medium",
             "attack_mapping_ids": [],
@@ -252,6 +258,7 @@
           },
           "system_output": {
             "workflow_status": "completed",
+            "security_incident_detected": false,
             "detection_rules": [],
             "triage_severity": "medium",
             "correlated_event_groups": [],
@@ -297,6 +304,7 @@
           "case_id": "related-invalid-user-events",
           "ground_truth": {
             "description": "Three related invalid-user SSH authentication attempts from one source.",
+            "security_incident": true,
             "detection_rules": [
               "SSH-AUTH-003"
             ],
@@ -316,6 +324,7 @@
           },
           "system_output": {
             "workflow_status": "completed",
+            "security_incident_detected": true,
             "detection_rules": [
               {
                 "rule_id": "SSH-AUTH-003",
@@ -377,6 +386,7 @@
           "case_id": "uncertain-repeated-failures",
           "ground_truth": {
             "description": "Repeated failed SSH authentication is detectable, but the event evidence does not establish intent or compromise.",
+            "security_incident": true,
             "detection_rules": [
               "SSH-AUTH-001"
             ],
@@ -405,6 +415,7 @@
           },
           "system_output": {
             "workflow_status": "completed",
+            "security_incident_detected": true,
             "detection_rules": [
               {
                 "rule_id": "SSH-AUTH-001",
@@ -495,82 +506,1618 @@
               ]
             }
           }
+        },
+        {
+          "case_id": "confirmed-attack-burst-1",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2101,
+              2102,
+              2103,
+              2104,
+              2105
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2101,
+                  2102,
+                  2103,
+                  2104,
+                  2105
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2101,
+                2102,
+                2103,
+                2104,
+                2105
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2101,
+              2102,
+              2103,
+              2104,
+              2105
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2101,
+                    2102,
+                    2103,
+                    2104,
+                    2105
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 198.51.100.101 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2101,
+                    2102,
+                    2103,
+                    2104,
+                    2105
+                  ],
+                  "source_ip": "198.51.100.101",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "confirmed-attack-burst-2",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2111,
+              2112,
+              2113,
+              2114,
+              2115
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2111,
+                  2112,
+                  2113,
+                  2114,
+                  2115
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2111,
+                2112,
+                2113,
+                2114,
+                2115
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2111,
+              2112,
+              2113,
+              2114,
+              2115
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2111,
+                    2112,
+                    2113,
+                    2114,
+                    2115
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 198.51.100.102 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2111,
+                    2112,
+                    2113,
+                    2114,
+                    2115
+                  ],
+                  "source_ip": "198.51.100.102",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "confirmed-attack-burst-3",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2121,
+              2122,
+              2123,
+              2124,
+              2125
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2121,
+                  2122,
+                  2123,
+                  2124,
+                  2125
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2121,
+                2122,
+                2123,
+                2124,
+                2125
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2121,
+              2122,
+              2123,
+              2124,
+              2125
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2121,
+                    2122,
+                    2123,
+                    2124,
+                    2125
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 198.51.100.103 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2121,
+                    2122,
+                    2123,
+                    2124,
+                    2125
+                  ],
+                  "source_ip": "198.51.100.103",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "confirmed-attack-burst-4",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2131,
+              2132,
+              2133,
+              2134,
+              2135
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2131,
+                  2132,
+                  2133,
+                  2134,
+                  2135
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2131,
+                2132,
+                2133,
+                2134,
+                2135
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2131,
+              2132,
+              2133,
+              2134,
+              2135
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2131,
+                    2132,
+                    2133,
+                    2134,
+                    2135
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 198.51.100.104 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2131,
+                    2132,
+                    2133,
+                    2134,
+                    2135
+                  ],
+                  "source_ip": "198.51.100.104",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "confirmed-attack-burst-5",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2141,
+              2142,
+              2143,
+              2144,
+              2145
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2141,
+                  2142,
+                  2143,
+                  2144,
+                  2145
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2141,
+                2142,
+                2143,
+                2144,
+                2145
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2141,
+              2142,
+              2143,
+              2144,
+              2145
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2141,
+                    2142,
+                    2143,
+                    2144,
+                    2145
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 198.51.100.105 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2141,
+                    2142,
+                    2143,
+                    2144,
+                    2145
+                  ],
+                  "source_ip": "198.51.100.105",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "benign-maintenance-burst-1",
+          "ground_truth": {
+            "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+            "security_incident": false,
+            "detection_rules": [],
+            "risk_category": "low",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": false,
+            "detection_rules": [],
+            "triage_severity": "high",
+            "correlated_event_groups": [],
+            "attack_mapping_ids": [],
+            "risk_category": "high",
+            "detection_evidence_ids": [],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2201,
+                    2202,
+                    2203,
+                    2204,
+                    2205
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 203.0.113.101 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2201,
+                    2202,
+                    2203,
+                    2204,
+                    2205
+                  ],
+                  "source_ip": "203.0.113.101",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "benign-maintenance-burst-2",
+          "ground_truth": {
+            "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+            "security_incident": false,
+            "detection_rules": [],
+            "risk_category": "low",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": false,
+            "detection_rules": [],
+            "triage_severity": "high",
+            "correlated_event_groups": [],
+            "attack_mapping_ids": [],
+            "risk_category": "high",
+            "detection_evidence_ids": [],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2211,
+                    2212,
+                    2213,
+                    2214,
+                    2215
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 203.0.113.102 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2211,
+                    2212,
+                    2213,
+                    2214,
+                    2215
+                  ],
+                  "source_ip": "203.0.113.102",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "benign-maintenance-burst-3",
+          "ground_truth": {
+            "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+            "security_incident": false,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "low",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [
+              2221,
+              2222,
+              2223,
+              2224,
+              2225
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2221,
+                  2222,
+                  2223,
+                  2224,
+                  2225
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2221,
+                2222,
+                2223,
+                2224,
+                2225
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2221,
+              2222,
+              2223,
+              2224,
+              2225
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2221,
+                    2222,
+                    2223,
+                    2224,
+                    2225
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 203.0.113.103 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2221,
+                    2222,
+                    2223,
+                    2224,
+                    2225
+                  ],
+                  "source_ip": "203.0.113.103",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "benign-maintenance-burst-4",
+          "ground_truth": {
+            "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+            "security_incident": false,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "low",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [
+              2231,
+              2232,
+              2233,
+              2234,
+              2235
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2231,
+                  2232,
+                  2233,
+                  2234,
+                  2235
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2231,
+                2232,
+                2233,
+                2234,
+                2235
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2231,
+              2232,
+              2233,
+              2234,
+              2235
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2231,
+                    2232,
+                    2233,
+                    2234,
+                    2235
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 203.0.113.104 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2231,
+                    2232,
+                    2233,
+                    2234,
+                    2235
+                  ],
+                  "source_ip": "203.0.113.104",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "low-and-slow-attack-1",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive low-and-slow attack scenario with 4 failed logins. The configured threshold is four, so this case is at threshold. The positive label is scenario ground truth; logs alone do not prove intent.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2301,
+              2302,
+              2303,
+              2304
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2301,
+                  2302,
+                  2303,
+                  2304
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2301,
+                2302,
+                2303,
+                2304
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2301,
+              2302,
+              2303,
+              2304
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2301,
+                    2302,
+                    2303,
+                    2304
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 192.0.2.101 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2301,
+                    2302,
+                    2303,
+                    2304
+                  ],
+                  "source_ip": "192.0.2.101",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "low-and-slow-attack-2",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive low-and-slow attack scenario with 4 failed logins. The configured threshold is four, so this case is at threshold. The positive label is scenario ground truth; logs alone do not prove intent.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2311,
+              2312,
+              2313,
+              2314
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2311,
+                  2312,
+                  2313,
+                  2314
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2311,
+                2312,
+                2313,
+                2314
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2311,
+              2312,
+              2313,
+              2314
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2311,
+                    2312,
+                    2313,
+                    2314
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 192.0.2.102 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2311,
+                    2312,
+                    2313,
+                    2314
+                  ],
+                  "source_ip": "192.0.2.102",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "low-and-slow-attack-3",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive low-and-slow attack scenario with 4 failed logins. The configured threshold is four, so this case is at threshold. The positive label is scenario ground truth; logs alone do not prove intent.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-001"
+            ],
+            "risk_category": "high",
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "expected_evidence_ids": [
+              2321,
+              2322,
+              2323,
+              2324
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-001",
+                "event_ids": [
+                  2321,
+                  2322,
+                  2323,
+                  2324
+                ]
+              }
+            ],
+            "triage_severity": "high",
+            "correlated_event_groups": [
+              [
+                2321,
+                2322,
+                2323,
+                2324
+              ]
+            ],
+            "attack_mapping_ids": [
+              "T1110",
+              "T1110.001"
+            ],
+            "risk_category": "high",
+            "detection_evidence_ids": [
+              2321,
+              2322,
+              2323,
+              2324
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2321,
+                    2322,
+                    2323,
+                    2324
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 192.0.2.103 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2321,
+                    2322,
+                    2323,
+                    2324
+                  ],
+                  "source_ip": "192.0.2.103",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "low-and-slow-attack-4",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive low-and-slow attack scenario with 3 failed logins. The configured threshold is four, so this case is below threshold and expected to be missed. The positive label is scenario ground truth; logs alone do not prove intent.",
+            "security_incident": true,
+            "detection_rules": [],
+            "risk_category": "high",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": false,
+            "detection_rules": [],
+            "triage_severity": "high",
+            "correlated_event_groups": [],
+            "attack_mapping_ids": [],
+            "risk_category": "high",
+            "detection_evidence_ids": [],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2331,
+                    2332,
+                    2333
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                },
+                {
+                  "text": "Consider whether limiting traffic from recorded source IP 192.0.2.104 is appropriate after analyst review.",
+                  "action_type": "rate_limit_source_ip",
+                  "event_ids": [
+                    2331,
+                    2332,
+                    2333
+                  ],
+                  "source_ip": "192.0.2.104",
+                  "username": null,
+                  "priority": "high",
+                  "requires_human_approval": true,
+                  "approval_status": "pending",
+                  "uncertainty": "The source address appears in stored events, but malicious intent is not established; no network change has been made.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent",
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "confirmed-invalid-user-scan",
+          "ground_truth": {
+            "description": "Synthetic benchmark-positive scan for nonexistent SSH accounts. Three invalid-user events trigger the dedicated invalid-user rule.",
+            "security_incident": true,
+            "detection_rules": [
+              "SSH-AUTH-003"
+            ],
+            "risk_category": "medium",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [
+              2501,
+              2502,
+              2503
+            ],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": true,
+            "detection_rules": [
+              {
+                "rule_id": "SSH-AUTH-003",
+                "event_ids": [
+                  2501,
+                  2502,
+                  2503
+                ]
+              }
+            ],
+            "triage_severity": "medium",
+            "correlated_event_groups": [
+              [
+                2501,
+                2502,
+                2503
+              ]
+            ],
+            "attack_mapping_ids": [],
+            "risk_category": "medium",
+            "detection_evidence_ids": [
+              2501,
+              2502,
+              2503
+            ],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2501,
+                    2502,
+                    2503
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "medium",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "routine-successful-login",
+          "ground_truth": {
+            "description": "Synthetic benign negative control. Routine successful SSH login.",
+            "security_incident": false,
+            "detection_rules": [],
+            "risk_category": "low",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [],
+            "verification_probes": [
+              {
+                "probe_id": "successful-event-contradicts-failure-claim",
+                "expected_status": "contradicted"
+              }
+            ]
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": false,
+            "detection_rules": [],
+            "triage_severity": "low",
+            "correlated_event_groups": [],
+            "attack_mapping_ids": [],
+            "risk_category": "low",
+            "detection_evidence_ids": [],
+            "probe_verification": [
+              {
+                "probe_id": "successful-event-contradicts-failure-claim",
+                "actual_status": "contradicted"
+              }
+            ],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2401
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "low",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "isolated-failed-login",
+          "ground_truth": {
+            "description": "Synthetic benign negative control. One failed login below all configured thresholds.",
+            "security_incident": false,
+            "detection_rules": [],
+            "risk_category": "medium",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": false,
+            "detection_rules": [],
+            "triage_severity": "medium",
+            "correlated_event_groups": [],
+            "attack_mapping_ids": [],
+            "risk_category": "medium",
+            "detection_evidence_ids": [],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2411
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "medium",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "routine-mixed-logins",
+          "ground_truth": {
+            "description": "Synthetic benign negative control. Routine mixed SSH activity below detection thresholds.",
+            "security_incident": false,
+            "detection_rules": [],
+            "risk_category": "medium",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [],
+            "verification_probes": []
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": false,
+            "detection_rules": [],
+            "triage_severity": "medium",
+            "correlated_event_groups": [],
+            "attack_mapping_ids": [],
+            "risk_category": "medium",
+            "detection_evidence_ids": [],
+            "probe_verification": [],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2421,
+                    2422,
+                    2423
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "medium",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent"
+              ]
+            }
+          }
+        },
+        {
+          "case_id": "few-invalid-user-attempts",
+          "ground_truth": {
+            "description": "Synthetic benign negative control. Two invalid-user attempts below the configured threshold.",
+            "security_incident": false,
+            "detection_rules": [],
+            "risk_category": "medium",
+            "attack_mapping_ids": [],
+            "expected_evidence_ids": [],
+            "verification_probes": [
+              {
+                "probe_id": "invalid-user-is-not-password-failure-1",
+                "expected_status": "unsupported"
+              },
+              {
+                "probe_id": "invalid-user-is-not-password-failure-2",
+                "expected_status": "unsupported"
+              }
+            ]
+          },
+          "system_output": {
+            "workflow_status": "completed",
+            "security_incident_detected": false,
+            "detection_rules": [],
+            "triage_severity": "medium",
+            "correlated_event_groups": [],
+            "attack_mapping_ids": [],
+            "risk_category": "medium",
+            "detection_evidence_ids": [],
+            "probe_verification": [
+              {
+                "probe_id": "invalid-user-is-not-password-failure-1",
+                "actual_status": "supported"
+              },
+              {
+                "probe_id": "invalid-user-is-not-password-failure-2",
+                "actual_status": "supported"
+              }
+            ],
+            "response_plan": {
+              "actions_executed": false,
+              "recommendations": [
+                {
+                  "text": "Review the referenced incident events and authentication timeline.",
+                  "action_type": "review_logs",
+                  "event_ids": [
+                    2431,
+                    2432
+                  ],
+                  "source_ip": null,
+                  "username": null,
+                  "priority": "medium",
+                  "requires_human_approval": false,
+                  "approval_status": "pending",
+                  "uncertainty": "This is a review recommendation only; stored events do not establish intent or compromise.",
+                  "actions_executed": false
+                }
+              ],
+              "verification_consistency": [
+                "consistent"
+              ]
+            }
+          }
         }
       ],
       "metrics": {
         "detection_precision": {
-          "value": 1.0,
-          "numerator": 3,
-          "denominator": 3,
+          "value": 0.8571428571428571,
+          "numerator": 12,
+          "denominator": 14,
           "unavailable_reason": null,
           "definition": "Correctly detected positive cases divided by all predicted-positive cases."
         },
         "detection_recall": {
-          "value": 1.0,
-          "numerator": 3,
-          "denominator": 3,
+          "value": 0.9230769230769231,
+          "numerator": 12,
+          "denominator": 13,
           "unavailable_reason": null,
           "definition": "Correctly detected positive cases divided by all ground-truth positive cases."
         },
         "detection_f1": {
-          "value": 1.0,
-          "numerator": 6,
-          "denominator": 6,
+          "value": 0.8888888888888888,
+          "numerator": 24,
+          "denominator": 27,
           "unavailable_reason": null,
           "definition": "Harmonic mean of case-level detection precision and recall."
         },
         "false_positive_rate": {
-          "value": 0.0,
-          "numerator": 0,
-          "denominator": 2,
+          "value": 0.2,
+          "numerator": 2,
+          "denominator": 10,
           "unavailable_reason": null,
           "definition": "False-positive cases divided by all ground-truth negative cases."
         },
         "confusion_counts": {
-          "true_positive": 3,
-          "false_positive": 0,
-          "false_negative": 0,
-          "true_negative": 2
+          "true_positive": 12,
+          "false_positive": 2,
+          "false_negative": 1,
+          "true_negative": 8
+        },
+        "detection_accuracy": {
+          "value": 0.8695652173913043,
+          "numerator": 20,
+          "denominator": 23,
+          "unavailable_reason": null,
+          "definition": "Correctly classified cases (true positives plus true negatives) divided by all labeled cases."
         },
         "detection_rule_exact_case_accuracy": {
           "value": 1.0,
-          "numerator": 5,
-          "denominator": 5,
+          "numerator": 23,
+          "denominator": 23,
           "unavailable_reason": null,
           "definition": "Cases whose complete deterministic rule-ID set exactly matches the ground-truth set."
         },
         "attack_mapping_exact_case_accuracy": {
-          "value": 1.0,
-          "numerator": 5,
-          "denominator": 5,
+          "value": 0.9130434782608695,
+          "numerator": 21,
+          "denominator": 23,
           "unavailable_reason": null,
           "definition": "Cases whose complete ATT&CK technique-ID set exactly matches the reference set."
         },
         "severity_risk_category_accuracy": {
-          "value": 1.0,
-          "numerator": 5,
-          "denominator": 5,
+          "value": 0.8260869565217391,
+          "numerator": 19,
+          "denominator": 23,
           "unavailable_reason": null,
           "definition": "Cases whose deterministic risk category matches the reference label."
         },
         "related_event_group_exact_accuracy": {
           "value": 1.0,
-          "numerator": 5,
-          "denominator": 5,
+          "numerator": 23,
+          "denominator": 23,
           "unavailable_reason": null,
           "definition": "Reference event groups exactly matched by correlation output."
         },
         "expected_evidence_coverage": {
           "value": 1.0,
-          "numerator": 13,
-          "denominator": 13,
+          "numerator": 63,
+          "denominator": 63,
           "unavailable_reason": null,
           "definition": "Expected event IDs included among detection evidence references."
         },
         "detection_evidence_id_validity": {
           "value": 1.0,
-          "numerator": 13,
-          "denominator": 13,
+          "numerator": 63,
+          "denominator": 63,
           "unavailable_reason": null,
           "definition": "Detection evidence references that point to an event in the synthetic dataset."
         },
@@ -582,23 +2129,23 @@
           "definition": "Supported evaluation probes returned as supported."
         },
         "unsupported_claim_detection_rate": {
-          "value": 1.0,
-          "numerator": 2,
-          "denominator": 2,
+          "value": 0.6,
+          "numerator": 3,
+          "denominator": 5,
           "unavailable_reason": null,
           "definition": "Unsupported/contradicted probes flagged as unsupported or contradicted."
         },
         "verification_probe_exact_status_accuracy": {
-          "value": 1.0,
-          "numerator": 10,
-          "denominator": 10,
+          "value": 0.8461538461538461,
+          "numerator": 11,
+          "denominator": 13,
           "unavailable_reason": null,
           "definition": "Evaluation probes whose verifier status exactly matches the reference status."
         },
         "response_recommendation_safety_compliance": {
           "value": 1.0,
-          "numerator": 7,
-          "denominator": 7,
+          "numerator": 38,
+          "denominator": 38,
           "unavailable_reason": null,
           "definition": "Recommendations satisfying non-execution, event-reference, approval, and verifier-consistency constraints."
         }

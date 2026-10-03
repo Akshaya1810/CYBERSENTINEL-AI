@@ -1,7 +1,7 @@
 {
   "dataset_id": "cybersentinel-synthetic-ssh",
-  "version": "1.0.0",
-  "description": "Controlled synthetic SSH cases for deterministic local security-service evaluation. No real user or production data.",
+  "version": "1.3.0",
+  "description": "Controlled synthetic SSH cases with positive attacks, benign threshold-crossing activity, low-and-slow attacks, and negative controls. Labels are authored scenario ground truth, not real-world measurements.",
   "cases": [
     {
       "case_id": "ssh-brute-force",
@@ -9,23 +9,113 @@
       "incident_severity": "High",
       "source_ip": "203.0.113.10",
       "events": [
-        {"id": 1101, "event_type": "ssh_authentication_failed", "offset_seconds": 0, "source_ip": "203.0.113.10", "username": "analyst", "hostname": "synthetic-edge-1", "description": "Synthetic failed SSH password authentication."},
-        {"id": 1102, "event_type": "ssh_authentication_failed", "offset_seconds": 10, "source_ip": "203.0.113.10", "username": "analyst", "hostname": "synthetic-edge-1", "description": "Synthetic failed SSH password authentication."},
-        {"id": 1103, "event_type": "ssh_authentication_failed", "offset_seconds": 20, "source_ip": "203.0.113.10", "username": "analyst", "hostname": "synthetic-edge-1", "description": "Synthetic failed SSH password authentication."},
-        {"id": 1104, "event_type": "ssh_authentication_failed", "offset_seconds": 30, "source_ip": "203.0.113.10", "username": "analyst", "hostname": "synthetic-edge-1", "description": "Synthetic failed SSH password authentication."},
-        {"id": 1105, "event_type": "ssh_authentication_failed", "offset_seconds": 40, "source_ip": "203.0.113.10", "username": "analyst", "hostname": "synthetic-edge-1", "description": "Synthetic failed SSH password authentication."}
+        {
+          "id": 1101,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.10",
+          "username": "analyst",
+          "hostname": "synthetic-edge-1",
+          "description": "Synthetic failed SSH password authentication."
+        },
+        {
+          "id": 1102,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 10,
+          "source_ip": "203.0.113.10",
+          "username": "analyst",
+          "hostname": "synthetic-edge-1",
+          "description": "Synthetic failed SSH password authentication."
+        },
+        {
+          "id": 1103,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "203.0.113.10",
+          "username": "analyst",
+          "hostname": "synthetic-edge-1",
+          "description": "Synthetic failed SSH password authentication."
+        },
+        {
+          "id": 1104,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 30,
+          "source_ip": "203.0.113.10",
+          "username": "analyst",
+          "hostname": "synthetic-edge-1",
+          "description": "Synthetic failed SSH password authentication."
+        },
+        {
+          "id": 1105,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "203.0.113.10",
+          "username": "analyst",
+          "hostname": "synthetic-edge-1",
+          "description": "Synthetic failed SSH password authentication."
+        }
       ],
-      "expected_detection_rules": ["SSH-AUTH-001"],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
       "expected_risk_category": "high",
-      "expected_attack_mappings": ["T1110", "T1110.001"],
-      "expected_evidence_ids": [1101, 1102, 1103, 1104, 1105],
-      "expected_related_event_groups": [[1101, 1102, 1103, 1104, 1105]],
-      "verification_probes": [
-        {"probe_id": "recorded-failed-auth", "text": "A failed SSH authentication was recorded for 203.0.113.10.", "claim_type": "fact", "event_ids": [1101], "source_ip": "203.0.113.10", "successful_login": false, "expected_status": "supported"},
-        {"probe_id": "intent-is-hypothesis", "text": "The source may be guessing passwords.", "claim_type": "hypothesis", "event_ids": [1101], "expected_status": "unverified"},
-        {"probe_id": "unknown-evidence-id", "text": "An unsupported event is cited.", "claim_type": "fact", "event_ids": [1199], "expected_status": "unsupported"}
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
       ],
-      "response_constraints": {"actions_must_not_execute": true, "high_impact_requires_pending_approval": true, "evidence_ids_must_belong_to_case": true}
+      "expected_evidence_ids": [
+        1101,
+        1102,
+        1103,
+        1104,
+        1105
+      ],
+      "expected_related_event_groups": [
+        [
+          1101,
+          1102,
+          1103,
+          1104,
+          1105
+        ]
+      ],
+      "verification_probes": [
+        {
+          "probe_id": "recorded-failed-auth",
+          "text": "A failed SSH authentication was recorded for 203.0.113.10.",
+          "claim_type": "fact",
+          "event_ids": [
+            1101
+          ],
+          "source_ip": "203.0.113.10",
+          "successful_login": false,
+          "expected_status": "supported"
+        },
+        {
+          "probe_id": "intent-is-hypothesis",
+          "text": "The source may be guessing passwords.",
+          "claim_type": "hypothesis",
+          "event_ids": [
+            1101
+          ],
+          "expected_status": "unverified"
+        },
+        {
+          "probe_id": "unknown-evidence-id",
+          "text": "An unsupported event is cited.",
+          "claim_type": "fact",
+          "event_ids": [
+            1199
+          ],
+          "expected_status": "unsupported"
+        }
+      ],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      },
+      "expected_security_incident": true
     },
     {
       "case_id": "benign-ssh-authentication",
@@ -33,17 +123,50 @@
       "incident_severity": "Low",
       "source_ip": "203.0.113.20",
       "events": [
-        {"id": 1201, "event_type": "ssh_authentication_succeeded", "offset_seconds": 0, "source_ip": "203.0.113.20", "username": "operator", "hostname": "synthetic-edge-2", "description": "Synthetic successful SSH password authentication."}
+        {
+          "id": 1201,
+          "event_type": "ssh_authentication_succeeded",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.20",
+          "username": "operator",
+          "hostname": "synthetic-edge-2",
+          "description": "Synthetic successful SSH password authentication."
+        }
       ],
       "expected_detection_rules": [],
       "expected_risk_category": "low",
       "expected_attack_mappings": [],
       "expected_evidence_ids": [],
       "verification_probes": [
-        {"probe_id": "recorded-success", "text": "A successful SSH authentication was recorded for 203.0.113.20.", "claim_type": "fact", "event_ids": [1201], "source_ip": "203.0.113.20", "username": "operator", "successful_login": true, "expected_status": "supported"},
-        {"probe_id": "contradicted-failure", "text": "The referenced SSH authentication failed.", "claim_type": "fact", "event_ids": [1201], "successful_login": false, "expected_status": "contradicted"}
+        {
+          "probe_id": "recorded-success",
+          "text": "A successful SSH authentication was recorded for 203.0.113.20.",
+          "claim_type": "fact",
+          "event_ids": [
+            1201
+          ],
+          "source_ip": "203.0.113.20",
+          "username": "operator",
+          "successful_login": true,
+          "expected_status": "supported"
+        },
+        {
+          "probe_id": "contradicted-failure",
+          "text": "The referenced SSH authentication failed.",
+          "claim_type": "fact",
+          "event_ids": [
+            1201
+          ],
+          "successful_login": false,
+          "expected_status": "contradicted"
+        }
       ],
-      "response_constraints": {"actions_must_not_execute": true, "high_impact_requires_pending_approval": true, "evidence_ids_must_belong_to_case": true}
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      },
+      "expected_security_incident": false
     },
     {
       "case_id": "insufficient-failed-authentication",
@@ -51,18 +174,57 @@
       "incident_severity": "Medium",
       "source_ip": "203.0.113.30",
       "events": [
-        {"id": 1301, "event_type": "ssh_authentication_failed", "offset_seconds": 0, "source_ip": "203.0.113.30", "username": "analyst", "hostname": "synthetic-edge-3", "description": "Synthetic failed SSH password authentication."},
-        {"id": 1302, "event_type": "ssh_authentication_failed", "offset_seconds": 15, "source_ip": "203.0.113.30", "username": "analyst", "hostname": "synthetic-edge-3", "description": "Synthetic failed SSH password authentication."}
+        {
+          "id": 1301,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.30",
+          "username": "analyst",
+          "hostname": "synthetic-edge-3",
+          "description": "Synthetic failed SSH password authentication."
+        },
+        {
+          "id": 1302,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 15,
+          "source_ip": "203.0.113.30",
+          "username": "analyst",
+          "hostname": "synthetic-edge-3",
+          "description": "Synthetic failed SSH password authentication."
+        }
       ],
       "expected_detection_rules": [],
       "expected_risk_category": "medium",
       "expected_attack_mappings": [],
       "expected_evidence_ids": [],
       "verification_probes": [
-        {"probe_id": "recorded-failure", "text": "A failed SSH authentication was recorded.", "claim_type": "fact", "event_ids": [1301], "successful_login": false, "expected_status": "supported"},
-        {"probe_id": "intent-remains-uncertain", "text": "The attempts may be password guessing.", "claim_type": "hypothesis", "event_ids": [1301, 1302], "expected_status": "unverified"}
+        {
+          "probe_id": "recorded-failure",
+          "text": "A failed SSH authentication was recorded.",
+          "claim_type": "fact",
+          "event_ids": [
+            1301
+          ],
+          "successful_login": false,
+          "expected_status": "supported"
+        },
+        {
+          "probe_id": "intent-remains-uncertain",
+          "text": "The attempts may be password guessing.",
+          "claim_type": "hypothesis",
+          "event_ids": [
+            1301,
+            1302
+          ],
+          "expected_status": "unverified"
+        }
       ],
-      "response_constraints": {"actions_must_not_execute": true, "high_impact_requires_pending_approval": true, "evidence_ids_must_belong_to_case": true}
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      },
+      "expected_security_incident": false
     },
     {
       "case_id": "related-invalid-user-events",
@@ -70,19 +232,70 @@
       "incident_severity": "Medium",
       "source_ip": "203.0.113.40",
       "events": [
-        {"id": 1401, "event_type": "ssh_invalid_user", "offset_seconds": 0, "source_ip": "203.0.113.40", "username": "missing-a", "hostname": "synthetic-edge-4", "description": "Synthetic invalid SSH username attempt."},
-        {"id": 1402, "event_type": "ssh_invalid_user", "offset_seconds": 10, "source_ip": "203.0.113.40", "username": "missing-b", "hostname": "synthetic-edge-4", "description": "Synthetic invalid SSH username attempt."},
-        {"id": 1403, "event_type": "ssh_invalid_user", "offset_seconds": 20, "source_ip": "203.0.113.40", "username": "missing-c", "hostname": "synthetic-edge-4", "description": "Synthetic invalid SSH username attempt."}
+        {
+          "id": 1401,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.40",
+          "username": "missing-a",
+          "hostname": "synthetic-edge-4",
+          "description": "Synthetic invalid SSH username attempt."
+        },
+        {
+          "id": 1402,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 10,
+          "source_ip": "203.0.113.40",
+          "username": "missing-b",
+          "hostname": "synthetic-edge-4",
+          "description": "Synthetic invalid SSH username attempt."
+        },
+        {
+          "id": 1403,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 20,
+          "source_ip": "203.0.113.40",
+          "username": "missing-c",
+          "hostname": "synthetic-edge-4",
+          "description": "Synthetic invalid SSH username attempt."
+        }
       ],
-      "expected_detection_rules": ["SSH-AUTH-003"],
+      "expected_detection_rules": [
+        "SSH-AUTH-003"
+      ],
       "expected_risk_category": "medium",
       "expected_attack_mappings": [],
-      "expected_evidence_ids": [1401, 1402, 1403],
-      "expected_related_event_groups": [[1401, 1402, 1403]],
-      "verification_probes": [
-        {"probe_id": "invalid-user-record", "text": "An invalid SSH user attempt was recorded.", "claim_type": "fact", "event_ids": [1401], "source_ip": "203.0.113.40", "username": "missing-a", "expected_status": "supported"}
+      "expected_evidence_ids": [
+        1401,
+        1402,
+        1403
       ],
-      "response_constraints": {"actions_must_not_execute": true, "high_impact_requires_pending_approval": true, "evidence_ids_must_belong_to_case": true}
+      "expected_related_event_groups": [
+        [
+          1401,
+          1402,
+          1403
+        ]
+      ],
+      "verification_probes": [
+        {
+          "probe_id": "invalid-user-record",
+          "text": "An invalid SSH user attempt was recorded.",
+          "claim_type": "fact",
+          "event_ids": [
+            1401
+          ],
+          "source_ip": "203.0.113.40",
+          "username": "missing-a",
+          "expected_status": "supported"
+        }
+      ],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      },
+      "expected_security_incident": true
     },
     {
       "case_id": "uncertain-repeated-failures",
@@ -90,22 +303,1317 @@
       "incident_severity": "High",
       "source_ip": "203.0.113.50",
       "events": [
-        {"id": 1501, "event_type": "ssh_authentication_failed", "offset_seconds": 0, "source_ip": "203.0.113.50", "username": null, "hostname": null, "description": "Synthetic failed SSH password authentication with limited context."},
-        {"id": 1502, "event_type": "ssh_authentication_failed", "offset_seconds": 5, "source_ip": "203.0.113.50", "username": null, "hostname": null, "description": "Synthetic failed SSH password authentication with limited context."},
-        {"id": 1503, "event_type": "ssh_authentication_failed", "offset_seconds": 10, "source_ip": "203.0.113.50", "username": null, "hostname": null, "description": "Synthetic failed SSH password authentication with limited context."},
-        {"id": 1504, "event_type": "ssh_authentication_failed", "offset_seconds": 15, "source_ip": "203.0.113.50", "username": null, "hostname": null, "description": "Synthetic failed SSH password authentication with limited context."},
-        {"id": 1505, "event_type": "ssh_authentication_failed", "offset_seconds": 20, "source_ip": "203.0.113.50", "username": null, "hostname": null, "description": "Synthetic failed SSH password authentication with limited context."}
+        {
+          "id": 1501,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.50",
+          "username": null,
+          "hostname": null,
+          "description": "Synthetic failed SSH password authentication with limited context."
+        },
+        {
+          "id": 1502,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 5,
+          "source_ip": "203.0.113.50",
+          "username": null,
+          "hostname": null,
+          "description": "Synthetic failed SSH password authentication with limited context."
+        },
+        {
+          "id": 1503,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 10,
+          "source_ip": "203.0.113.50",
+          "username": null,
+          "hostname": null,
+          "description": "Synthetic failed SSH password authentication with limited context."
+        },
+        {
+          "id": 1504,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 15,
+          "source_ip": "203.0.113.50",
+          "username": null,
+          "hostname": null,
+          "description": "Synthetic failed SSH password authentication with limited context."
+        },
+        {
+          "id": 1505,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "203.0.113.50",
+          "username": null,
+          "hostname": null,
+          "description": "Synthetic failed SSH password authentication with limited context."
+        }
       ],
-      "expected_detection_rules": ["SSH-AUTH-001"],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
       "expected_risk_category": "high",
-      "expected_attack_mappings": ["T1110", "T1110.001"],
-      "expected_evidence_ids": [1501, 1502, 1503, 1504, 1505],
-      "expected_related_event_groups": [[1501, 1502, 1503, 1504, 1505]],
-      "verification_probes": [
-        {"probe_id": "recorded-failure", "text": "A failed SSH authentication was recorded from 203.0.113.50.", "claim_type": "fact", "event_ids": [1501], "source_ip": "203.0.113.50", "successful_login": false, "expected_status": "supported"},
-        {"probe_id": "compromise-not-established", "text": "This source compromised an account.", "claim_type": "hypothesis", "event_ids": [1501, 1502], "expected_status": "unverified"}
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
       ],
-      "response_constraints": {"actions_must_not_execute": true, "high_impact_requires_pending_approval": true, "evidence_ids_must_belong_to_case": true}
+      "expected_evidence_ids": [
+        1501,
+        1502,
+        1503,
+        1504,
+        1505
+      ],
+      "expected_related_event_groups": [
+        [
+          1501,
+          1502,
+          1503,
+          1504,
+          1505
+        ]
+      ],
+      "verification_probes": [
+        {
+          "probe_id": "recorded-failure",
+          "text": "A failed SSH authentication was recorded from 203.0.113.50.",
+          "claim_type": "fact",
+          "event_ids": [
+            1501
+          ],
+          "source_ip": "203.0.113.50",
+          "successful_login": false,
+          "expected_status": "supported"
+        },
+        {
+          "probe_id": "compromise-not-established",
+          "text": "This source compromised an account.",
+          "claim_type": "hypothesis",
+          "event_ids": [
+            1501,
+            1502
+          ],
+          "expected_status": "unverified"
+        }
+      ],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      },
+      "expected_security_incident": true
+    },
+    {
+      "case_id": "confirmed-attack-burst-1",
+      "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "198.51.100.101",
+      "events": [
+        {
+          "id": 2101,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "198.51.100.101",
+          "username": "service1",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2102,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "198.51.100.101",
+          "username": "service1",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2103,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "198.51.100.101",
+          "username": "service1",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2104,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "198.51.100.101",
+          "username": "service1",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2105,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "198.51.100.101",
+          "username": "service1",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2101,
+        2102,
+        2103,
+        2104,
+        2105
+      ],
+      "expected_related_event_groups": [
+        [
+          2101,
+          2102,
+          2103,
+          2104,
+          2105
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "confirmed-attack-burst-2",
+      "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "198.51.100.102",
+      "events": [
+        {
+          "id": 2111,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "198.51.100.102",
+          "username": "service2",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2112,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "198.51.100.102",
+          "username": "service2",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2113,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "198.51.100.102",
+          "username": "service2",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2114,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "198.51.100.102",
+          "username": "service2",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2115,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "198.51.100.102",
+          "username": "service2",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2111,
+        2112,
+        2113,
+        2114,
+        2115
+      ],
+      "expected_related_event_groups": [
+        [
+          2111,
+          2112,
+          2113,
+          2114,
+          2115
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "confirmed-attack-burst-3",
+      "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "198.51.100.103",
+      "events": [
+        {
+          "id": 2121,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "198.51.100.103",
+          "username": "service3",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2122,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "198.51.100.103",
+          "username": "service3",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2123,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "198.51.100.103",
+          "username": "service3",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2124,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "198.51.100.103",
+          "username": "service3",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2125,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "198.51.100.103",
+          "username": "service3",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2121,
+        2122,
+        2123,
+        2124,
+        2125
+      ],
+      "expected_related_event_groups": [
+        [
+          2121,
+          2122,
+          2123,
+          2124,
+          2125
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "confirmed-attack-burst-4",
+      "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "198.51.100.104",
+      "events": [
+        {
+          "id": 2131,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "198.51.100.104",
+          "username": "service4",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2132,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "198.51.100.104",
+          "username": "service4",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2133,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "198.51.100.104",
+          "username": "service4",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2134,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "198.51.100.104",
+          "username": "service4",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2135,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "198.51.100.104",
+          "username": "service4",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2131,
+        2132,
+        2133,
+        2134,
+        2135
+      ],
+      "expected_related_event_groups": [
+        [
+          2131,
+          2132,
+          2133,
+          2134,
+          2135
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "confirmed-attack-burst-5",
+      "description": "Synthetic benchmark-positive attack replay with five failed logins inside the rule window. The positive label is assigned by the controlled test scenario, not inferred from these log lines.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "198.51.100.105",
+      "events": [
+        {
+          "id": 2141,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "198.51.100.105",
+          "username": "service5",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2142,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "198.51.100.105",
+          "username": "service5",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2143,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "198.51.100.105",
+          "username": "service5",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2144,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "198.51.100.105",
+          "username": "service5",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2145,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "198.51.100.105",
+          "username": "service5",
+          "hostname": "synthetic-confirmed-at",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2141,
+        2142,
+        2143,
+        2144,
+        2145
+      ],
+      "expected_related_event_groups": [
+        [
+          2141,
+          2142,
+          2143,
+          2144,
+          2145
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "benign-maintenance-burst-1",
+      "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+      "expected_security_incident": false,
+      "incident_severity": "High",
+      "source_ip": "203.0.113.101",
+      "events": [
+        {
+          "id": 2201,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.101",
+          "username": "automation1",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2202,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "203.0.113.101",
+          "username": "automation1",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2203,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "203.0.113.101",
+          "username": "automation1",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2204,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "203.0.113.101",
+          "username": "automation1",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2205,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "203.0.113.101",
+          "username": "automation1",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [],
+      "expected_risk_category": "low",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [],
+      "expected_related_event_groups": [],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "benign-maintenance-burst-2",
+      "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+      "expected_security_incident": false,
+      "incident_severity": "High",
+      "source_ip": "203.0.113.102",
+      "events": [
+        {
+          "id": 2211,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.102",
+          "username": "automation2",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2212,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "203.0.113.102",
+          "username": "automation2",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2213,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "203.0.113.102",
+          "username": "automation2",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2214,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "203.0.113.102",
+          "username": "automation2",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2215,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "203.0.113.102",
+          "username": "automation2",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [],
+      "expected_risk_category": "low",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [],
+      "expected_related_event_groups": [],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "benign-maintenance-burst-3",
+      "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+      "expected_security_incident": false,
+      "incident_severity": "High",
+      "source_ip": "203.0.113.103",
+      "events": [
+        {
+          "id": 2221,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.103",
+          "username": "automation3",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2222,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "203.0.113.103",
+          "username": "automation3",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2223,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "203.0.113.103",
+          "username": "automation3",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2224,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "203.0.113.103",
+          "username": "automation3",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2225,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "203.0.113.103",
+          "username": "automation3",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "low",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [
+        2221,
+        2222,
+        2223,
+        2224,
+        2225
+      ],
+      "expected_related_event_groups": [
+        [
+          2221,
+          2222,
+          2223,
+          2224,
+          2225
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "benign-maintenance-burst-4",
+      "description": "Synthetic benign maintenance or credential-rotation test with five failed logins. The first two named automation identities are explicitly allowlisted in the benchmark; the remaining identities are not allowlisted and remain alertable.",
+      "expected_security_incident": false,
+      "incident_severity": "High",
+      "source_ip": "203.0.113.104",
+      "events": [
+        {
+          "id": 2231,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "203.0.113.104",
+          "username": "automation4",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2232,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "203.0.113.104",
+          "username": "automation4",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2233,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "203.0.113.104",
+          "username": "automation4",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2234,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "203.0.113.104",
+          "username": "automation4",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2235,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 80,
+          "source_ip": "203.0.113.104",
+          "username": "automation4",
+          "hostname": "synthetic-benign-maint",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "low",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [
+        2231,
+        2232,
+        2233,
+        2234,
+        2235
+      ],
+      "expected_related_event_groups": [
+        [
+          2231,
+          2232,
+          2233,
+          2234,
+          2235
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "low-and-slow-attack-1",
+      "description": "Synthetic benchmark-positive low-and-slow attack scenario with 4 failed logins. The configured threshold is four, so this case is at threshold. The positive label is scenario ground truth; logs alone do not prove intent.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "192.0.2.101",
+      "events": [
+        {
+          "id": 2301,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.101",
+          "username": "account1",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2302,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "192.0.2.101",
+          "username": "account1",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2303,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "192.0.2.101",
+          "username": "account1",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2304,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "192.0.2.101",
+          "username": "account1",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2301,
+        2302,
+        2303,
+        2304
+      ],
+      "expected_related_event_groups": [
+        [
+          2301,
+          2302,
+          2303,
+          2304
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "low-and-slow-attack-2",
+      "description": "Synthetic benchmark-positive low-and-slow attack scenario with 4 failed logins. The configured threshold is four, so this case is at threshold. The positive label is scenario ground truth; logs alone do not prove intent.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "192.0.2.102",
+      "events": [
+        {
+          "id": 2311,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.102",
+          "username": "account2",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2312,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "192.0.2.102",
+          "username": "account2",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2313,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "192.0.2.102",
+          "username": "account2",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2314,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "192.0.2.102",
+          "username": "account2",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2311,
+        2312,
+        2313,
+        2314
+      ],
+      "expected_related_event_groups": [
+        [
+          2311,
+          2312,
+          2313,
+          2314
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "low-and-slow-attack-3",
+      "description": "Synthetic benchmark-positive low-and-slow attack scenario with 4 failed logins. The configured threshold is four, so this case is at threshold. The positive label is scenario ground truth; logs alone do not prove intent.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "192.0.2.103",
+      "events": [
+        {
+          "id": 2321,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.103",
+          "username": "account3",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2322,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "192.0.2.103",
+          "username": "account3",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2323,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "192.0.2.103",
+          "username": "account3",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2324,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 60,
+          "source_ip": "192.0.2.103",
+          "username": "account3",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-001"
+      ],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [
+        "T1110",
+        "T1110.001"
+      ],
+      "expected_evidence_ids": [
+        2321,
+        2322,
+        2323,
+        2324
+      ],
+      "expected_related_event_groups": [
+        [
+          2321,
+          2322,
+          2323,
+          2324
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "low-and-slow-attack-4",
+      "description": "Synthetic benchmark-positive low-and-slow attack scenario with 3 failed logins. The configured threshold is four, so this case is below threshold and expected to be missed. The positive label is scenario ground truth; logs alone do not prove intent.",
+      "expected_security_incident": true,
+      "incident_severity": "High",
+      "source_ip": "192.0.2.104",
+      "events": [
+        {
+          "id": 2331,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.104",
+          "username": "account4",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2332,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "192.0.2.104",
+          "username": "account4",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2333,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 40,
+          "source_ip": "192.0.2.104",
+          "username": "account4",
+          "hostname": "synthetic-low-and-slow",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [],
+      "expected_risk_category": "high",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [],
+      "expected_related_event_groups": [],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "confirmed-invalid-user-scan",
+      "description": "Synthetic benchmark-positive scan for nonexistent SSH accounts. Three invalid-user events trigger the dedicated invalid-user rule.",
+      "expected_security_incident": true,
+      "incident_severity": "Medium",
+      "source_ip": "198.51.100.111",
+      "events": [
+        {
+          "id": 2501,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 0,
+          "source_ip": "198.51.100.111",
+          "username": "nonexistent",
+          "hostname": "synthetic-confirmed-in",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2502,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 20,
+          "source_ip": "198.51.100.111",
+          "username": "nonexistent",
+          "hostname": "synthetic-confirmed-in",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2503,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 40,
+          "source_ip": "198.51.100.111",
+          "username": "nonexistent",
+          "hostname": "synthetic-confirmed-in",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [
+        "SSH-AUTH-003"
+      ],
+      "expected_risk_category": "medium",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [
+        2501,
+        2502,
+        2503
+      ],
+      "expected_related_event_groups": [
+        [
+          2501,
+          2502,
+          2503
+        ]
+      ],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "routine-successful-login",
+      "description": "Synthetic benign negative control. Routine successful SSH login.",
+      "expected_security_incident": false,
+      "incident_severity": "Low",
+      "source_ip": "192.0.2.201",
+      "events": [
+        {
+          "id": 2401,
+          "event_type": "ssh_authentication_succeeded",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.201",
+          "username": "operator1",
+          "hostname": "synthetic-routine-succ",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [],
+      "expected_risk_category": "low",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [],
+      "expected_related_event_groups": [],
+      "verification_probes": [
+        {
+          "probe_id": "successful-event-contradicts-failure-claim",
+          "text": "The referenced SSH password login failed.",
+          "claim_type": "fact",
+          "event_ids": [
+            2401
+          ],
+          "successful_login": false,
+          "expected_status": "contradicted"
+        }
+      ],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "isolated-failed-login",
+      "description": "Synthetic benign negative control. One failed login below all configured thresholds.",
+      "expected_security_incident": false,
+      "incident_severity": "Medium",
+      "source_ip": "192.0.2.202",
+      "events": [
+        {
+          "id": 2411,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.202",
+          "username": "operator2",
+          "hostname": "synthetic-isolated-fai",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [],
+      "expected_risk_category": "medium",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [],
+      "expected_related_event_groups": [],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "routine-mixed-logins",
+      "description": "Synthetic benign negative control. Routine mixed SSH activity below detection thresholds.",
+      "expected_security_incident": false,
+      "incident_severity": "Medium",
+      "source_ip": "192.0.2.203",
+      "events": [
+        {
+          "id": 2421,
+          "event_type": "ssh_authentication_succeeded",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.203",
+          "username": "operator3",
+          "hostname": "synthetic-routine-mixe",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2422,
+          "event_type": "ssh_authentication_failed",
+          "offset_seconds": 20,
+          "source_ip": "192.0.2.203",
+          "username": "operator3",
+          "hostname": "synthetic-routine-mixe",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2423,
+          "event_type": "ssh_authentication_succeeded",
+          "offset_seconds": 40,
+          "source_ip": "192.0.2.203",
+          "username": "operator3",
+          "hostname": "synthetic-routine-mixe",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [],
+      "expected_risk_category": "medium",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [],
+      "expected_related_event_groups": [],
+      "verification_probes": [],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
+    },
+    {
+      "case_id": "few-invalid-user-attempts",
+      "description": "Synthetic benign negative control. Two invalid-user attempts below the configured threshold.",
+      "expected_security_incident": false,
+      "incident_severity": "Medium",
+      "source_ip": "192.0.2.204",
+      "events": [
+        {
+          "id": 2431,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 0,
+          "source_ip": "192.0.2.204",
+          "username": "operator4",
+          "hostname": "synthetic-few-invalid-",
+          "description": "Synthetic SSH authentication event."
+        },
+        {
+          "id": 2432,
+          "event_type": "ssh_invalid_user",
+          "offset_seconds": 20,
+          "source_ip": "192.0.2.204",
+          "username": "operator4",
+          "hostname": "synthetic-few-invalid-",
+          "description": "Synthetic SSH authentication event."
+        }
+      ],
+      "expected_detection_rules": [],
+      "expected_risk_category": "medium",
+      "expected_attack_mappings": [],
+      "expected_evidence_ids": [],
+      "expected_related_event_groups": [],
+      "verification_probes": [
+        {
+          "probe_id": "invalid-user-is-not-password-failure-1",
+          "text": "The event confirms a failed password authentication.",
+          "claim_type": "fact",
+          "event_ids": [
+            2431
+          ],
+          "successful_login": false,
+          "expected_status": "unsupported"
+        },
+        {
+          "probe_id": "invalid-user-is-not-password-failure-2",
+          "text": "The event confirms another failed password authentication.",
+          "claim_type": "fact",
+          "event_ids": [
+            2432
+          ],
+          "successful_login": false,
+          "expected_status": "unsupported"
+        }
+      ],
+      "response_constraints": {
+        "actions_must_not_execute": true,
+        "high_impact_requires_pending_approval": true,
+        "evidence_ids_must_belong_to_case": true
+      }
     }
   ]
 }

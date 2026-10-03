@@ -48,13 +48,23 @@ HIGH_IMPACT_ACTIONS = {
     "disable_account",
     "reset_password",
 }
+COUNT_ONLY_METRICS = {
+    "detection_rule_exact_case_accuracy",
+    "related_event_group_exact_accuracy",
+    "expected_evidence_coverage",
+    "detection_evidence_id_validity",
+    "verification_supported_claim_rate",
+    "verification_probe_exact_status_accuracy",
+    "response_recommendation_safety_compliance",
+}
 
 
 def _evaluation_settings() -> Settings:
     return Settings(
         _env_file=None,
-        ssh_bruteforce_threshold=5,
+        ssh_bruteforce_threshold=4,
         ssh_bruteforce_window_seconds=300,
+        ssh_bruteforce_exempt_usernames="automation1,automation2",
         ssh_success_failure_threshold=5,
         ssh_success_failure_window_seconds=600,
         ssh_invalid_user_threshold=3,
@@ -215,6 +225,7 @@ def _deterministic_case_output(case: SyntheticEvaluationCase, state: Investigati
     ))
     return {
         "workflow_status": "completed",
+        "security_incident_detected": bool(state.detections),
         "detection_rules": [
             {"rule_id": item.rule_id, "event_ids": item.event_ids}
             for item in state.detections
@@ -258,6 +269,7 @@ def _full_pipeline_output(
     evidence_ids = {event.id for event in state.events}
     output = {
         "workflow_status": state.status,
+        "security_incident_detected": bool(state.detections),
         "workflow_error": state.error_message,
         "completed_agents": state.completed_agents,
         "detection_rules": [
@@ -313,12 +325,21 @@ def _calculate_metrics(
     cases: list[SyntheticEvaluationCase],
     results: list[dict[str, Any]],
 ) -> dict[str, dict[str, Any]]:
-    expected_detections = [bool(case.expected_detection_rules) for case in cases]
+    expected_detections = [case.expected_security_incident for case in cases]
     predicted_detections = [
-        bool(result["system_output"].get("detection_rules"))
+        bool(result["system_output"].get("security_incident_detected"))
         for result in results
     ]
     metrics: dict[str, Any] = binary_detection_metrics(expected_detections, predicted_detections)
+    confusion = metrics["confusion_counts"]
+    total_cases = sum(confusion.values())
+    correct_cases = confusion["true_positive"] + confusion["true_negative"]
+    metrics["detection_accuracy"] = _metric(
+        correct_cases / total_cases if total_cases else None,
+        correct_cases,
+        total_cases,
+        "The dataset contains no labeled cases.",
+    )
 
     def categorical(name: str, expected, actual, unavailable: str):
         pairs = [(left, right) for left, right in zip(expected, actual) if right is not None]
@@ -490,6 +511,7 @@ def _calculate_metrics(
         "detection_precision": "Correctly detected positive cases divided by all predicted-positive cases.",
         "detection_recall": "Correctly detected positive cases divided by all ground-truth positive cases.",
         "detection_f1": "Harmonic mean of case-level detection precision and recall.",
+        "detection_accuracy": "Correctly classified cases (true positives plus true negatives) divided by all labeled cases.",
         "false_positive_rate": "False-positive cases divided by all ground-truth negative cases.",
         "detection_rule_exact_case_accuracy": "Cases whose complete deterministic rule-ID set exactly matches the ground-truth set.",
         "attack_mapping_exact_case_accuracy": "Cases whose complete ATT&CK technique-ID set exactly matches the reference set.",
@@ -532,7 +554,10 @@ def _format_markdown(document: dict[str, Any]) -> str:
                 counts = ", ".join(f"{key}={value}" for key, value in metric.items())
                 lines.append(f"| `{name}` | n/a | {counts} | Raw counts | |")
                 continue
-            value = "Unavailable" if metric["value"] is None else f"{metric['value']:.3f}"
+            if name in COUNT_ONLY_METRICS:
+                value = "count only"
+            else:
+                value = "Unavailable" if metric["value"] is None else f"{metric['value']:.3f}"
             ratio = f"{metric['numerator']} / {metric['denominator']}"
             why = metric.get("unavailable_reason") or ""
             definition = metric.get("definition", "")
@@ -557,7 +582,8 @@ def _format_markdown(document: dict[str, Any]) -> str:
             actual_status = output.get("workflow_status", "n/a")
             error = output.get("workflow_error") or ""
             ground_truth = (
-                f"rules={expected}; risk={gt['risk_category']}; ATT&CK={expected_mappings}; "
+                f"security_incident={gt['security_incident']}; rules={expected}; "
+                f"risk={gt['risk_category']}; ATT&CK={expected_mappings}; "
                 f"verification={', '.join(item['probe_id'] + ':' + item['expected_status'] for item in gt['verification_probes'])}"
             )
             system = (
@@ -569,6 +595,23 @@ def _format_markdown(document: dict[str, Any]) -> str:
                 f"| `{result['case_id']}` | {ground_truth} | {system} | "
                 f"{actual_status}; {error} |"
             )
+        metrics = mode["metrics"]
+        if "confusion_counts" in metrics:
+            counts = metrics["confusion_counts"]
+            lines.extend([
+                "",
+                "## Detection classification analysis",
+                "",
+                "| Outcome | Cases |",
+                "|---|---:|",
+                f"| True positives | {counts['true_positive']} |",
+                f"| False positives | {counts['false_positive']} |",
+                f"| False negatives | {counts['false_negative']} |",
+                f"| True negatives | {counts['true_negative']} |",
+                "",
+                "Precision, recall, F1, accuracy, and false-positive rate are calculated against the authored `expected_security_incident` labels, not simply against whether a deterministic rule matched.",
+                "Benign maintenance bursts that trigger a rule are labeled false positives; labeled low-and-slow attack cases below the configured threshold are labeled false negatives.",
+            ])
     lines.extend([
         "",
         "## Metrics not calculated",
@@ -586,6 +629,7 @@ def _format_markdown(document: dict[str, Any]) -> str:
         "- ATT&CK accuracy is exact per-case mapping-set agreement against the bundled local SSH catalog.",
         "- Risk accuracy compares the existing deterministic severity category with the case label; it does not measure real-world impact.",
         "- Results describe only these synthetic SSH cases and do not demonstrate superiority over any baseline.",
+        "- Integrity, fixture-conformance, and response-safety checks are reported as pass counts, not performance percentages. Safety constraints are safeguards to preserve, not scores to tune downward.",
         "- Single-LLM-only and multi-agent-without-verification baselines are not implemented and have no results.",
         "- The complete pipeline requires the configured local loopback Ollama service; an unrun or failed workflow is not a measured successful result.",
         "- For the complete pipeline, detection and risk inputs are precomputed by the same deterministic local services; their scores are not independent measurements of the LLM stages.",
@@ -611,6 +655,7 @@ def run_evaluation(
         state = _build_state(case)
         ground_truth = {
             "description": case.description,
+            "security_incident": case.expected_security_incident,
             "detection_rules": case.expected_detection_rules,
             "risk_category": case.expected_risk_category,
             "attack_mapping_ids": case.expected_attack_mappings,
@@ -644,6 +689,7 @@ def run_evaluation(
             except Exception as error:
                 output = {
                     "workflow_status": "error",
+                    "security_incident_detected": bool(state.detections),
                     "workflow_error": f"{type(error).__name__}: {error}",
                     "detection_rules": [
                         {"rule_id": item.rule_id, "event_ids": item.event_ids}
@@ -678,6 +724,7 @@ def run_evaluation(
         "schema_version": "1.0",
         "evaluation_parameters": {
             "ssh_bruteforce_threshold": evaluation_settings.ssh_bruteforce_threshold,
+            "ssh_bruteforce_exempt_usernames": evaluation_settings.ssh_bruteforce_exempt_usernames,
             "ssh_bruteforce_window_seconds": evaluation_settings.ssh_bruteforce_window_seconds,
             "ssh_success_failure_threshold": evaluation_settings.ssh_success_failure_threshold,
             "ssh_invalid_user_threshold": evaluation_settings.ssh_invalid_user_threshold,

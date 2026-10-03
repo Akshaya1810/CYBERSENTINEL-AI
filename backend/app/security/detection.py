@@ -50,7 +50,7 @@ def active_rules(settings: Settings) -> list[RuleDefinition]:
             IncidentSeverity.HIGH,
             settings.ssh_bruteforce_threshold,
             settings.ssh_bruteforce_window_seconds,
-            "Repeated failed SSH password authentications from one source IP.",
+            "Repeated failed SSH password authentications from one source IP, excluding explicitly allowlisted usernames.",
         ),
         RuleDefinition(
             SUCCESS_AFTER_FAILURES_RULE_ID,
@@ -78,6 +78,11 @@ def detect(events: Iterable[DetectionEvent], new_event_ids: set[int], settings: 
     for event in available:
         by_ip.setdefault(event.source_ip or "", []).append(event)
     matches: list[RuleMatch] = []
+    exempt_usernames = {
+        username.strip().casefold()
+        for username in settings.ssh_bruteforce_exempt_usernames.split(",")
+        if username.strip()
+    }
 
     for source_ip, ip_events in by_ip.items():
         failed = sorted(
@@ -91,7 +96,15 @@ def detect(events: Iterable[DetectionEvent], new_event_ids: set[int], settings: 
             assert trigger_time is not None
             window = [event for event in failed if trigger_time - brute_window <= event.timestamp <= trigger_time]
             new_triggers = [event for event in window if event.id in new_event_ids]
-            if len(window) >= settings.ssh_bruteforce_threshold and new_triggers:
+            all_events_are_exempt = bool(window) and all(
+                event.username is not None and event.username.strip().casefold() in exempt_usernames
+                for event in window
+            )
+            if (
+                len(window) >= settings.ssh_bruteforce_threshold
+                and new_triggers
+                and not all_events_are_exempt
+            ):
                 qualified_brute.append((trigger_time, window))
         if qualified_brute:
             _, window = qualified_brute[-1]

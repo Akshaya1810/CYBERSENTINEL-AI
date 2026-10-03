@@ -77,14 +77,39 @@ class DeterministicRuleTests(unittest.TestCase):
         return DetectionEvent(event_id, event_type, self.start + timedelta(seconds=seconds), ip, username, "synthetic test evidence")
 
     def test_brute_force_threshold_and_window(self):
-        four = [self.event(i, SSH_FAILED, i) for i in range(1, 5)]
-        self.assertEqual(detect(four, {4}, self.settings), [])
-        five = four + [self.event(5, SSH_FAILED, 4)]
-        matches = detect(five, {5}, self.settings)
+        three = [self.event(i, SSH_FAILED, i) for i in range(1, 4)]
+        self.assertEqual(detect(three, {3}, self.settings), [])
+        four = three + [self.event(4, SSH_FAILED, 4)]
+        matches = detect(four, {4}, self.settings)
         self.assertEqual([match.rule_id for match in matches], [BRUTE_FORCE_RULE_ID])
-        self.assertEqual(len(matches[0].event_ids), 5)
-        outside = [self.event(i, SSH_FAILED, i * 90) for i in range(1, 6)]
-        self.assertEqual(detect(outside, {5}, self.settings), [])
+        self.assertEqual(len(matches[0].event_ids), 4)
+        outside = [self.event(i, SSH_FAILED, i * 101) for i in range(1, 5)]
+        self.assertEqual(detect(outside, {4}, self.settings), [])
+
+    def test_bruteforce_username_allowlist_requires_every_window_event_to_match(self):
+        settings = Settings(_env_file=None, ssh_bruteforce_exempt_usernames="Automation, deploy")
+        trusted = [
+            self.event(i, SSH_FAILED, i, username="automation")
+            for i in range(1, 5)
+        ]
+        self.assertEqual(detect(trusted, {4}, settings), [])
+
+        mixed = trusted[:-1] + [self.event(4, SSH_FAILED, 4, username="admin")]
+        self.assertIn(
+            BRUTE_FORCE_RULE_ID,
+            [match.rule_id for match in detect(mixed, {4}, settings)],
+        )
+
+    def test_allowlist_does_not_suppress_success_after_failures(self):
+        settings = Settings(_env_file=None, ssh_bruteforce_exempt_usernames="automation")
+        failures = [
+            self.event(i, SSH_FAILED, i * 10, username="automation")
+            for i in range(1, 6)
+        ]
+        success = self.event(6, SSH_SUCCEEDED, 60, username="automation")
+        rules = [match.rule_id for match in detect(failures + [success], {6}, settings)]
+        self.assertIn(SUCCESS_AFTER_FAILURES_RULE_ID, rules)
+        self.assertNotIn(BRUTE_FORCE_RULE_ID, rules)
 
     def test_success_after_repeated_failures_requires_preceding_window(self):
         failures = [self.event(i, SSH_FAILED, i * 20) for i in range(1, 6)]
@@ -99,7 +124,7 @@ class DeterministicRuleTests(unittest.TestCase):
         matches = detect(attempts, {3}, self.settings)
         self.assertIn(INVALID_USER_RULE_ID, [match.rule_id for match in matches])
         rules = {rule.rule_id: rule for rule in active_rules(self.settings)}
-        self.assertEqual(rules[BRUTE_FORCE_RULE_ID].threshold, 5)
+        self.assertEqual(rules[BRUTE_FORCE_RULE_ID].threshold, 4)
         self.assertEqual(rules[BRUTE_FORCE_RULE_ID].window_seconds, 300)
 
 
